@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+
+  application:
+    image: index-processing-spark-submitter
+    container_name: application
+    depends_on:
+      - spark-master
+    environment:
+      - 'SPARK_MASTER=spark://spark-master:7077'
+      - 'ENABLE_INIT_DAEMON=false'
+    ports:
+      - '4040:4040'
+    networks:
+      crawler-network:
+        ipv4_address: 10.5.0.3
+
+  spark-master:
+    image: bde2020/spark-master
+    container_name: spark-master
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+    networks:
+      crawler-network:
+        ipv4_address: 10.5.0.4
+
+  spark-worker-1:
+    image: bde2020/spark-worker
+    container_name: spark-worker-1
+    depends_on:
+      - spark-master
+    ports:
+      - '8081:8081'
+    environment:
+      - 'SPARK_MASTER=spark://spark-master:7077'
+    networks:
+      crawler-network:
+        ipv4_address: 10.5.0.5
+
+
+networks:
+  crawler-network:
+    driver: bridge
+    name: crawler-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.5.0.0/16
