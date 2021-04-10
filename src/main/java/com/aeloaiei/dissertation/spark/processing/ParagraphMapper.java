@@ -2,7 +2,7 @@ package com.aeloaiei.dissertation.spark.processing;
 
 import com.aeloaiei.dissertation.spark.model.WebDocument;
 import com.aeloaiei.dissertation.spark.model.WebParagraph;
-import com.aeloaiei.dissertation.spark.utils.TextUtils;
+import com.aeloaiei.dissertation.spark.text.utils.TextUtils;
 
 import java.io.Serializable;
 import java.util.Iterator;

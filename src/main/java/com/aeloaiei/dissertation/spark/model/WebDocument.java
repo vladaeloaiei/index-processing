@@ -17,5 +17,6 @@ public class WebDocument implements Serializable {
 
     @JsonProperty("_id")
     private String location;
+    private String title;
     private String content;
 }

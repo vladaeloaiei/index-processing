@@ -4,22 +4,24 @@ import com.aeloaiei.dissertation.spark.model.WebWord;
 
 import java.io.Serializable;
 
-import static java.lang.Math.log;
+import static com.aeloaiei.dissertation.spark.text.utils.MathHelper.inverseDocumentFrequencySmooth;
+import static com.aeloaiei.dissertation.spark.text.utils.MathHelper.logNormalizedTermFrequency;
 
 public class WordRaking implements Serializable {
 
     public WebWord computeWordRanking(WebWord webWord, int totalWebDocuments) {
         int wordAppearancesCount = webWord.getAppearances().size();
 
+        webWord.setInverseDocumentFrequencySmooth(inverseDocumentFrequencySmooth(totalWebDocuments, wordAppearancesCount));
+
         for (WebWord.Appearance appearance : webWord.getAppearances()) {
-            computeAppearanceRanking(appearance, wordAppearancesCount, totalWebDocuments);
+            computeAppearanceRanking(appearance);
         }
 
         return webWord;
     }
 
-    private void computeAppearanceRanking(WebWord.Appearance appearance, int wordAppearancesCount, int totalWebDocuments) {
-        appearance.setLogNormalizedTermFrequency((float) log(1 + (float) appearance.getTermCount() / appearance.getDocumentSizeInTerms()));
-        appearance.setInverseDocumentFrequencySmooth((float) log((float) totalWebDocuments / (1 + wordAppearancesCount)) + 1);
+    private void computeAppearanceRanking(WebWord.Appearance appearance) {
+        appearance.setLogNormalizedTermFrequency(logNormalizedTermFrequency(appearance.getTermCount(), appearance.getDocumentSizeInTerms()));
     }
 }

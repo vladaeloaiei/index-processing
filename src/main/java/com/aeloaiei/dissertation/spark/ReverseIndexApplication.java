@@ -1,7 +1,7 @@
 package com.aeloaiei.dissertation.spark;
 
 import com.aeloaiei.dissertation.spark.job.PageRankingJob;
-import com.aeloaiei.dissertation.spark.job.WordIndexingJob;
+import com.aeloaiei.dissertation.spark.job.DocumentProcessingJob;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 
@@ -25,7 +25,7 @@ public class ReverseIndexApplication {
         JavaSparkContext javaSparkContext = new JavaSparkContext(spark.sparkContext());
 
         new PageRankingJob().run(javaSparkContext);
-        new WordIndexingJob().run(javaSparkContext);
+        new DocumentProcessingJob().run(javaSparkContext);
 
         javaSparkContext.close();
     }

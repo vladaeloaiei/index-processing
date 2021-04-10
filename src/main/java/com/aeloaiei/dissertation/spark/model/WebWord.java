@@ -17,10 +17,12 @@ public class WebWord implements Serializable {
 
     @JsonProperty("_id")
     private String word;
+    private Float inverseDocumentFrequencySmooth;
     private Set<Appearance> appearances;
 
     public WebWord(Entry entry) {
         this.word = entry.word;
+        this.inverseDocumentFrequencySmooth = entry.inverseDocumentFrequencySmooth;
         this.appearances = new HashSet<Appearance>() {{
             add(new Appearance(entry.getAppearance()));
         }};
@@ -35,7 +37,6 @@ public class WebWord implements Serializable {
         private Integer termCount;
         private Integer documentSizeInTerms;
         private Float logNormalizedTermFrequency;
-        private Float inverseDocumentFrequencySmooth;
 
         public Appearance(Entry entry) {
             this.location = entry.location;
@@ -45,7 +46,6 @@ public class WebWord implements Serializable {
             this.termCount = entry.termCount;
             this.documentSizeInTerms = entry.paragraphSizeInTerms;
             logNormalizedTermFrequency = 0F;
-            inverseDocumentFrequencySmooth = 0F;
         }
 
         @Data
@@ -64,6 +64,13 @@ public class WebWord implements Serializable {
     @AllArgsConstructor
     public static class Entry implements Serializable {
         private String word;
+        private Float inverseDocumentFrequencySmooth;
         private Appearance.Entry appearance;
+
+        public Entry(String word, Appearance.Entry appearance) {
+            this.word = word;
+            this.inverseDocumentFrequencySmooth = 0F;
+            this.appearance = appearance;
+        }
     }
 }

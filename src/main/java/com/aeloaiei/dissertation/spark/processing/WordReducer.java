@@ -3,6 +3,7 @@ package com.aeloaiei.dissertation.spark.processing;
 import com.aeloaiei.dissertation.spark.model.WebWord;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 
@@ -42,8 +43,12 @@ public class WordReducer implements Serializable {
                     WebWord.Appearance mergedAppearance = mergeAppearances(webWord1Appearance, webWord2Appearance);
 
                     webWord1Appearances.put(webWord2AppearanceLocation, mergedAppearance);
+                } else {
+                    webWord1Appearances.put(webWord2AppearanceLocation, webWord2Appearances.get(webWord2AppearanceLocation));
                 }
             }
+
+            webWord1.setAppearances(new HashSet<>(webWord1Appearances.values()));
 
             return webWord1;
         }

@@ -1,13 +1,16 @@
 package com.aeloaiei.dissertation.spark.job;
 
 import com.aeloaiei.dissertation.spark.model.WebDocument;
+import com.aeloaiei.dissertation.spark.model.WebDocumentSubject;
 import com.aeloaiei.dissertation.spark.model.WebParagraph;
 import com.aeloaiei.dissertation.spark.model.WebWord;
 import com.aeloaiei.dissertation.spark.processing.ParagraphMapper;
+import com.aeloaiei.dissertation.spark.processing.SubjectMapper;
 import com.aeloaiei.dissertation.spark.processing.WordMapper;
 import com.aeloaiei.dissertation.spark.processing.WordRaking;
 import com.aeloaiei.dissertation.spark.processing.WordReducer;
 import com.aeloaiei.dissertation.spark.repository.WebDocumentRepository;
+import com.aeloaiei.dissertation.spark.repository.WebDocumentSubjectRepository;
 import com.aeloaiei.dissertation.spark.repository.WebParagraphRepository;
 import com.aeloaiei.dissertation.spark.repository.WebWordRepository;
 import org.apache.log4j.LogManager;
@@ -18,17 +21,19 @@ import scala.Tuple2;
 
 import static org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK;
 
-public class WordIndexingJob implements SparkJob {
-    private static final Logger LOGGER = LogManager.getLogger(WordIndexingJob.class);
+public class DocumentProcessingJob implements SparkJob {
+    private static final Logger LOGGER = LogManager.getLogger(DocumentProcessingJob.class);
 
     @Override
     public void run(JavaSparkContext javaSparkContext) {
         WebDocumentRepository webDocumentRepository = new WebDocumentRepository();
         WebParagraphRepository webParagraphRepository = new WebParagraphRepository();
+        WebDocumentSubjectRepository webDocumentSubjectRepository = new WebDocumentSubjectRepository();
         WebWordRepository webWordRepository = new WebWordRepository();
 
         JavaRDD<WebDocument> webDocuments;
         JavaRDD<WebParagraph> webParagraphs;
+        JavaRDD<WebDocumentSubject> webDocumentSubjects;
         JavaRDD<WebWord> webWords;
         int webDocumentsCount;
 
@@ -39,12 +44,14 @@ public class WordIndexingJob implements SparkJob {
         webDocumentsCount = (int) webDocuments.count();
 
         webParagraphs = extractParagraphs(webDocuments);
+        webDocumentSubjects = extractSubjects(webDocuments);
         webWords = extractWords(webParagraphs);
         webWords = rankWords(webWords, webDocumentsCount);
 
-        LOGGER.info("Processing finished.");
         LOGGER.info("Saving paragraphs..");
         webParagraphRepository.save(javaSparkContext, webParagraphs);
+        LOGGER.info("Saving subjects..");
+        webDocumentSubjectRepository.save(javaSparkContext, webDocumentSubjects);
         LOGGER.info("Saving words..");
         webWordRepository.save(javaSparkContext, webWords);
         LOGGER.info("Word indexing job finished");
@@ -61,6 +68,12 @@ public class WordIndexingJob implements SparkJob {
         webParagraphs.count();
 
         return webParagraphs;
+    }
+
+    private JavaRDD<WebDocumentSubject> extractSubjects(JavaRDD<WebDocument> webDocuments) {
+        SubjectMapper subjectMapper = new SubjectMapper();
+
+        return webDocuments.map(subjectMapper::map);
     }
 
     private JavaRDD<WebWord> extractWords(JavaRDD<WebParagraph> webParagraphs) {

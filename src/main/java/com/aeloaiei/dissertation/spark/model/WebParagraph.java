@@ -1,6 +1,5 @@
 package com.aeloaiei.dissertation.spark.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +10,6 @@ import static java.lang.Math.abs;
 
 @Data
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class WebParagraph implements Serializable {
     public static final String COLLECTION_NAME = "web-paragraphs";
 

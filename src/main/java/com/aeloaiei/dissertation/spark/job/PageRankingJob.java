@@ -17,7 +17,7 @@ import java.util.Set;
 import static org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK;
 
 public class PageRankingJob implements SparkJob {
-    private static final Logger LOGGER = LogManager.getLogger(WordIndexingJob.class);
+    private static final Logger LOGGER = LogManager.getLogger(DocumentProcessingJob.class);
 
     private static final int ITERATIONS = 1_000;
     private static final float EPSILON = 1F / 1_000; // 1 per-mil delta between iterations
@@ -107,7 +107,7 @@ public class PageRankingJob implements SparkJob {
 
     private Iterator<Tuple2<String, Float>> shareRankPortionWithChildren(Tuple2<Set<String>, Float> currentLink) {
         //share an equal proportion of your probability with your children
-        //more exactly: myProbability/numberOfChildren
+        //more exactly: probability/numberOfChildren
         float rank = currentLink._2;
         int numberOfChildren = currentLink._1.size();
         return currentLink._1.stream()
