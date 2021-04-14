@@ -3,15 +3,18 @@ package com.aeloaiei.dissertation.spark.job;
 import com.aeloaiei.dissertation.spark.model.WebDocument;
 import com.aeloaiei.dissertation.spark.model.WebDocumentSubject;
 import com.aeloaiei.dissertation.spark.model.WebParagraph;
+import com.aeloaiei.dissertation.spark.model.WebTitle;
 import com.aeloaiei.dissertation.spark.model.WebWord;
 import com.aeloaiei.dissertation.spark.processing.ParagraphMapper;
 import com.aeloaiei.dissertation.spark.processing.SubjectMapper;
+import com.aeloaiei.dissertation.spark.processing.TitleMapper;
 import com.aeloaiei.dissertation.spark.processing.WordMapper;
 import com.aeloaiei.dissertation.spark.processing.WordRaking;
 import com.aeloaiei.dissertation.spark.processing.WordReducer;
 import com.aeloaiei.dissertation.spark.repository.WebDocumentRepository;
 import com.aeloaiei.dissertation.spark.repository.WebDocumentSubjectRepository;
 import com.aeloaiei.dissertation.spark.repository.WebParagraphRepository;
+import com.aeloaiei.dissertation.spark.repository.WebTitleRepository;
 import com.aeloaiei.dissertation.spark.repository.WebWordRepository;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -27,11 +30,13 @@ public class DocumentProcessingJob implements SparkJob {
     @Override
     public void run(JavaSparkContext javaSparkContext) {
         WebDocumentRepository webDocumentRepository = new WebDocumentRepository();
+        WebTitleRepository webTitleRepository = new WebTitleRepository();
         WebParagraphRepository webParagraphRepository = new WebParagraphRepository();
         WebDocumentSubjectRepository webDocumentSubjectRepository = new WebDocumentSubjectRepository();
         WebWordRepository webWordRepository = new WebWordRepository();
 
         JavaRDD<WebDocument> webDocuments;
+        JavaRDD<WebTitle> webTitles;
         JavaRDD<WebParagraph> webParagraphs;
         JavaRDD<WebDocumentSubject> webDocumentSubjects;
         JavaRDD<WebWord> webWords;
@@ -43,11 +48,14 @@ public class DocumentProcessingJob implements SparkJob {
         webDocuments.persist(MEMORY_AND_DISK());
         webDocumentsCount = (int) webDocuments.count();
 
+        webTitles = extractTitles(webDocuments);
         webParagraphs = extractParagraphs(webDocuments);
         webDocumentSubjects = extractSubjects(webDocuments);
         webWords = extractWords(webParagraphs);
         webWords = rankWords(webWords, webDocumentsCount);
 
+        LOGGER.info("Saving titles..");
+        webTitleRepository.save(javaSparkContext, webTitles);
         LOGGER.info("Saving paragraphs..");
         webParagraphRepository.save(javaSparkContext, webParagraphs);
         LOGGER.info("Saving subjects..");
@@ -58,6 +66,12 @@ public class DocumentProcessingJob implements SparkJob {
 
         webDocuments.unpersist();
         webParagraphs.unpersist();
+    }
+
+    private JavaRDD<WebTitle> extractTitles(JavaRDD<WebDocument> webDocuments) {
+        TitleMapper titleMapper = new TitleMapper();
+
+        return webDocuments.map(titleMapper::map);
     }
 
     private JavaRDD<WebParagraph> extractParagraphs(JavaRDD<WebDocument> webDocuments) {
