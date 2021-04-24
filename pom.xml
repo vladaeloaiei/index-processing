@@ -11,12 +11,15 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <apache.spark.version>3.0.1</apache.spark.version>
+        <mongo.spark.version>3.0.1</mongo.spark.version>
+        <stanford.corenlp.version>4.2.0</stanford.corenlp.version>
         <model.mapper.version>2.3.9</model.mapper.version>
+        <lombok.version>1.18.18</lombok.version>
+        <apache.commons.lang3.version>3.12.0</apache.commons.lang3.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.shade.plugin.version>3.2.4</maven.shade.plugin.version>
         <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
-        <apache.spark.version>3.0.1</apache.spark.version>
-        <mongo.spark.version>3.0.1</mongo.spark.version>
         <final.uber.name>${project.artifactId}-${project.version}-uber</final.uber.name>
     </properties>
 
@@ -25,18 +28,7 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.12</artifactId>
             <version>${apache.spark.version}</version>
-<!--            <scope>provided</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <version>4.2.0</version>
-            <classifier>models</classifier>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mongodb.spark</groupId>
@@ -44,26 +36,31 @@
             <version>${mongo.spark.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${apache.commons.lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>${stanford.corenlp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>${stanford.corenlp.version}</version>
+            <classifier>models</classifier>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.18</version>
+            <version>${lombok.version}</version>
         </dependency>
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>${model.mapper.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
-        </dependency>
-
-        <!--        <dependency>-->
-        <!--            <groupId>org.apache.lucene</groupId>-->
-        <!--            <artifactId>lucene-analyzers-common</artifactId>-->
-        <!--            <version>8.8.1</version>-->
-        <!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -95,37 +92,53 @@
                         <filter>
                             <artifact>*:*</artifact>
                             <excludes>
-                                <exclude>LICENSE*</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>META-INF/*</exclude>
                                 <exclude>module-info.class</exclude>
                             </excludes>
                         </filter>
                     </filters>
-                    <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.aeloaiei.dissertation.spark.MainTEst</mainClass>
-                        </transformer>
-                    </transformers>
                     <finalName>${final.uber.name}</finalName>
                 </configuration>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.codehaus.mojo</groupId>-->
-            <!--                <artifactId>exec-maven-plugin</artifactId>-->
-            <!--                <version>${maven.exec.plugin.version}</version>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-            <!--                        <id>docker-deploy</id>-->
-            <!--                        <phase>install</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>exec</goal>-->
-            <!--                        </goals>-->
-            <!--                        <configuration>-->
-            <!--                            <executable>deploy.bat</executable>-->
-            <!--                        </configuration>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${maven.exec.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>docker-build</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>-t</argument>
+                                <argument>${project.build.finalName}-spark-submitter</argument>
+                                <argument>.</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>docker-clean</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>image</argument>
+                                <argument>prune</argument>
+                                <argument>-f</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
