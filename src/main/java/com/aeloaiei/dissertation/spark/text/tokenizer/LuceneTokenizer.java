@@ -15,9 +15,10 @@ import java.util.Map;
 public class LuceneTokenizer implements Tokenizer {
     private static final Logger LOGGER = LogManager.getLogger(LuceneTokenizer.class);
 
+    transient private Analyzer analyzer = new EnglishAnalyzer();
+
     @Override
     public Pair<Integer, Map<String, Integer>> extract(String text) {
-        Analyzer analyzer = new EnglishAnalyzer();
         Map<String, Integer> words = new HashMap<>();
         int totalWordsCount = 0;
 
