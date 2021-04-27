@@ -13,8 +13,8 @@ import static com.aeloaiei.dissertation.spark.config.Configuration.SPARK_MONGODB
 public class IndexProcessingApplication {
     public static void main(final String[] args) {
         SparkSession spark = SparkSession.builder()
-//                .master(SPARK_MASTER)
-                .appName("MongoSparkConnectorIntro")
+                .master(SPARK_MASTER)
+                .appName("IndexProcessingApplication")
                 .config(SPARK_MONGODB_INPUT_URI_KEY, MONGODB_URI)
                 .config(SPARK_MONGODB_OUTPUT_URI_KEY, MONGODB_URI)
                 .getOrCreate();

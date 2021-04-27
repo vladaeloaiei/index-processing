@@ -2,9 +2,11 @@ package com.aeloaiei.dissertation.spark.job;
 
 import com.aeloaiei.dissertation.spark.model.WebDocument;
 import com.aeloaiei.dissertation.spark.model.WebDocumentSubject;
+import com.aeloaiei.dissertation.spark.model.WebIntro;
 import com.aeloaiei.dissertation.spark.model.WebParagraph;
 import com.aeloaiei.dissertation.spark.model.WebTitle;
 import com.aeloaiei.dissertation.spark.model.WebWord;
+import com.aeloaiei.dissertation.spark.processing.IntroMapper;
 import com.aeloaiei.dissertation.spark.processing.ParagraphMapper;
 import com.aeloaiei.dissertation.spark.processing.SubjectMapper;
 import com.aeloaiei.dissertation.spark.processing.TitleMapper;
@@ -13,6 +15,7 @@ import com.aeloaiei.dissertation.spark.processing.WordRaking;
 import com.aeloaiei.dissertation.spark.processing.WordReducer;
 import com.aeloaiei.dissertation.spark.repository.WebDocumentRepository;
 import com.aeloaiei.dissertation.spark.repository.WebDocumentSubjectRepository;
+import com.aeloaiei.dissertation.spark.repository.WebIntroRepository;
 import com.aeloaiei.dissertation.spark.repository.WebParagraphRepository;
 import com.aeloaiei.dissertation.spark.repository.WebTitleRepository;
 import com.aeloaiei.dissertation.spark.repository.WebWordRepository;
@@ -32,12 +35,14 @@ public class DocumentProcessingJob implements SparkJob {
         WebDocumentRepository webDocumentRepository = new WebDocumentRepository();
         WebTitleRepository webTitleRepository = new WebTitleRepository();
         WebParagraphRepository webParagraphRepository = new WebParagraphRepository();
+        WebIntroRepository webIntroRepository = new WebIntroRepository();
         WebDocumentSubjectRepository webDocumentSubjectRepository = new WebDocumentSubjectRepository();
         WebWordRepository webWordRepository = new WebWordRepository();
 
         JavaRDD<WebDocument> webDocuments;
         JavaRDD<WebTitle> webTitles;
         JavaRDD<WebParagraph> webParagraphs;
+        JavaRDD<WebIntro> webIntros;
         JavaRDD<WebDocumentSubject> webDocumentSubjects;
         JavaRDD<WebWord> webWords;
         int webDocumentsCount;
@@ -50,6 +55,7 @@ public class DocumentProcessingJob implements SparkJob {
 
         webTitles = extractTitles(webDocuments);
         webParagraphs = extractParagraphs(webDocuments);
+        webIntros = extractIntros(webDocuments);
         webDocumentSubjects = extractSubjects(webDocuments);
         webWords = extractWords(webParagraphs);
         webWords = rankWords(webWords, webDocumentsCount);
@@ -58,6 +64,8 @@ public class DocumentProcessingJob implements SparkJob {
         webTitleRepository.save(javaSparkContext, webTitles);
         LOGGER.info("Saving paragraphs..");
         webParagraphRepository.save(javaSparkContext, webParagraphs);
+        LOGGER.info("Saving intros..");
+        webIntroRepository.save(javaSparkContext, webIntros);
         LOGGER.info("Saving subjects..");
         webDocumentSubjectRepository.save(javaSparkContext, webDocumentSubjects);
         LOGGER.info("Saving words..");
@@ -82,6 +90,12 @@ public class DocumentProcessingJob implements SparkJob {
         webParagraphs.count();
 
         return webParagraphs;
+    }
+
+    private JavaRDD<WebIntro> extractIntros(JavaRDD<WebDocument> webDocuments) {
+        IntroMapper introMapper = new IntroMapper();
+
+        return webDocuments.map(introMapper::map);
     }
 
     private JavaRDD<WebDocumentSubject> extractSubjects(JavaRDD<WebDocument> webDocuments) {

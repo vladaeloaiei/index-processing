@@ -1,10 +1,8 @@
 package com.aeloaiei.dissertation.spark.text;
 
 import com.aeloaiei.dissertation.spark.text.tokenizer.filters.LuceneEnglishStopWordFilter;
-import com.aeloaiei.dissertation.spark.text.utils.OpenNLPUtils;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
@@ -17,14 +15,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.aeloaiei.dissertation.spark.text.utils.SerializableUtils.getPipeline;
+
 public class OpenNLPKeywords implements Serializable {
     private static final Set<String> TARGET_RELATIONS = new HashSet<String>() {{
         add("nsubj");
         add("obj");
         add("compound");
     }};
-
-    transient private static final StanfordCoreNLP pipeline = OpenNLPUtils.getPipeline("tokenize, ssplit, pos, lemma, depparse");
 
     /**
      * Extracts subjects, objects and compounds from a given text
@@ -37,7 +35,7 @@ public class OpenNLPKeywords implements Serializable {
         Map<String, Integer> tokens = new HashMap<>();
         int totalTokenCount = 0;
 
-        pipeline.annotate(document);
+        getPipeline("tokenize, ssplit, pos, lemma, depparse").annotate(document);
 
         for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
             SemanticGraph tree = sentence.get(SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation.class);
@@ -50,9 +48,5 @@ public class OpenNLPKeywords implements Serializable {
         }
 
         return Pair.of(totalTokenCount, tokens);
-    }
-
-    private class SerializableStanfordCoreNLP {
-        transient private StanfordCoreNLP pipeline;
     }
 }
