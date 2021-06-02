@@ -40,7 +40,9 @@ public class PageRankingJob implements SparkJob {
         JavaPairRDD<String, Float> ranksFractions;
         JavaPairRDD<String, Float> newRanks;
         int totalLinksCount;
+        long startTime;
 
+        startTime = System.currentTimeMillis();
         links = loadLinks(javaSparkContext, webUrlRepository);
         links.persist(MEMORY_AND_DISK());
         totalLinksCount = (int) links.count();
@@ -81,6 +83,7 @@ public class PageRankingJob implements SparkJob {
         links.unpersist();
         ranks.unpersist();
         rootRanks.ifPresent(JavaPairRDD::unpersist);
+        LOGGER.info("Finished page ranking in seconds: " + (System.currentTimeMillis() - startTime) / 1000);
     }
 
     private JavaPairRDD<String, Set<String>> loadLinks(JavaSparkContext javaSparkContext, WebUrlRepository webUrlRepository) {
@@ -123,11 +126,11 @@ public class PageRankingJob implements SparkJob {
 
     private JavaPairRDD<String, Float> computeNewRanks(JavaPairRDD<String, Float> ranksFractions, int totalLinksCount) {
         return ranksFractions.reduceByKey(Float::sum)
-                .mapValues(totalIntermediate -> applyDampingFactor(totalIntermediate, totalLinksCount));
+                .mapValues(rank -> applyDampingFactor(rank, totalLinksCount));
     }
 
-    private float applyDampingFactor(float probability, int numberOfLinks) {
-        return (1.0F - DAMPING_FACTOR) / numberOfLinks + DAMPING_FACTOR * probability;
+    private float applyDampingFactor(float rank, int numberOfLinks) {
+        return (1.0F - DAMPING_FACTOR) / numberOfLinks + DAMPING_FACTOR * rank;
     }
 
     private JavaPairRDD<String, Float> extractRootRanks(JavaPairRDD<String, Set<String>> links, JavaPairRDD<String, Float> ranks, int totalLinksCount) {

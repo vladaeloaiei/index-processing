@@ -1,12 +1,15 @@
 package com.aeloaiei.dissertation.spark.text;
 
 import com.aeloaiei.dissertation.spark.text.tokenizer.filters.LuceneEnglishStopWordFilter;
+import com.aeloaiei.dissertation.spark.text.utils.SerializableUtils;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.util.CoreMap;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.modelmapper.internal.Pair;
 
 import java.io.Serializable;
@@ -18,6 +21,8 @@ import java.util.Set;
 import static com.aeloaiei.dissertation.spark.text.utils.SerializableUtils.getPipeline;
 
 public class OpenNLPKeywords implements Serializable {
+    private static final Logger LOGGER = LogManager.getLogger(OpenNLPKeywords.class);
+
     private static final Set<String> TARGET_RELATIONS = new HashSet<String>() {{
         add("nsubj");
         add("obj");

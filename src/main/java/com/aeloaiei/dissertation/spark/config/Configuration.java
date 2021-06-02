@@ -6,6 +6,7 @@ public class Configuration {
      * SPARK
      */
     public static final String SPARK_MASTER = "spark://spark-master:7077";
+    public static final int NUMBER_OF_SHARDS = 32;
 
     /**
      * MONGO

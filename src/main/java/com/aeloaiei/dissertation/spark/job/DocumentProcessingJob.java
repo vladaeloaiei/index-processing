@@ -25,6 +25,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
+import static com.aeloaiei.dissertation.spark.config.Configuration.NUMBER_OF_SHARDS;
 import static org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK;
 
 public class DocumentProcessingJob implements SparkJob {
@@ -50,29 +51,38 @@ public class DocumentProcessingJob implements SparkJob {
         LOGGER.info("Starting the word indexing job");
 
         webDocuments = webDocumentRepository.load(javaSparkContext);
+        webDocuments = webDocuments.repartition(NUMBER_OF_SHARDS);
         webDocuments.persist(MEMORY_AND_DISK());
         webDocumentsCount = (int) webDocuments.count();
 
         webTitles = extractTitles(webDocuments);
         webParagraphs = extractParagraphs(webDocuments);
+        webParagraphs.persist(MEMORY_AND_DISK());
+        webParagraphs.count();
         webIntros = extractIntros(webDocuments);
-        webDocumentSubjects = extractSubjects(webDocuments);
+        webDocuments.unpersist();
+
+        webDocumentSubjects = extractSubjects(webIntros);
         webWords = extractWords(webParagraphs);
         webWords = rankWords(webWords, webDocumentsCount);
 
         LOGGER.info("Saving titles..");
         webTitleRepository.save(javaSparkContext, webTitles);
+
         LOGGER.info("Saving paragraphs..");
         webParagraphRepository.save(javaSparkContext, webParagraphs);
+
         LOGGER.info("Saving intros..");
         webIntroRepository.save(javaSparkContext, webIntros);
+
         LOGGER.info("Saving subjects..");
         webDocumentSubjectRepository.save(javaSparkContext, webDocumentSubjects);
+
         LOGGER.info("Saving words..");
         webWordRepository.save(javaSparkContext, webWords);
+
         LOGGER.info("Word indexing job finished");
 
-        webDocuments.unpersist();
         webParagraphs.unpersist();
     }
 
@@ -84,12 +94,8 @@ public class DocumentProcessingJob implements SparkJob {
 
     private JavaRDD<WebParagraph> extractParagraphs(JavaRDD<WebDocument> webDocuments) {
         ParagraphMapper paragraphMapper = new ParagraphMapper();
-        JavaRDD<WebParagraph> webParagraphs = webDocuments.flatMap(paragraphMapper::map);
 
-        webParagraphs.persist(MEMORY_AND_DISK());
-        webParagraphs.count();
-
-        return webParagraphs;
+        return webDocuments.flatMap(paragraphMapper::map);
     }
 
     private JavaRDD<WebIntro> extractIntros(JavaRDD<WebDocument> webDocuments) {
@@ -98,10 +104,10 @@ public class DocumentProcessingJob implements SparkJob {
         return webDocuments.map(introMapper::map);
     }
 
-    private JavaRDD<WebDocumentSubject> extractSubjects(JavaRDD<WebDocument> webDocuments) {
+    private JavaRDD<WebDocumentSubject> extractSubjects(JavaRDD<WebIntro> webIntros) {
         SubjectMapper subjectMapper = new SubjectMapper();
 
-        return webDocuments.map(subjectMapper::map);
+        return webIntros.map(subjectMapper::map);
     }
 
     private JavaRDD<WebWord> extractWords(JavaRDD<WebParagraph> webParagraphs) {

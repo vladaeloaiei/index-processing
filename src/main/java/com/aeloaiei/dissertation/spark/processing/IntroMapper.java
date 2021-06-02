@@ -14,12 +14,6 @@ public class IntroMapper implements Serializable {
     }
 
     public WebIntro map(WebDocument webDocument) {
-        return textUtils.getParagraphs(webDocument.getContent())
-                .stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .findFirst()
-                .map(p -> new WebIntro(webDocument.getLocation(), p))
-                .orElseGet(() -> new WebIntro(webDocument.getLocation(), ""));
+        return new WebIntro(webDocument.getLocation(), textUtils.getIntro(webDocument.getContent()));
     }
 }

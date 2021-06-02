@@ -1,7 +1,7 @@
 package com.aeloaiei.dissertation.spark.processing;
 
-import com.aeloaiei.dissertation.spark.model.WebDocument;
 import com.aeloaiei.dissertation.spark.model.WebDocumentSubject;
+import com.aeloaiei.dissertation.spark.model.WebIntro;
 import com.aeloaiei.dissertation.spark.text.OpenNLPKeywords;
 
 import java.io.Serializable;
@@ -16,8 +16,8 @@ public class SubjectMapper implements Serializable {
         openNLPKeywords = new OpenNLPKeywords();
     }
 
-    public WebDocumentSubject map(WebDocument webDocument) {
-        Set<WebDocumentSubject.Subject> subjects = openNLPKeywords.extract(webDocument.getContent())
+    public WebDocumentSubject map(WebIntro webIntro) {
+        Set<WebDocumentSubject.Subject> subjects = openNLPKeywords.extract(webIntro.getContent())
                 .getRight()
                 .entrySet()
                 .stream()
@@ -25,6 +25,6 @@ public class SubjectMapper implements Serializable {
                 .map(t -> new WebDocumentSubject.Subject(t.getKey(), t.getValue()))
                 .collect(toSet());
 
-        return new WebDocumentSubject(webDocument.getLocation(), subjects);
+        return new WebDocumentSubject(webIntro.getLocation(), subjects);
     }
 }

@@ -19,9 +19,8 @@ public class IndexProcessingApplication {
                 .config(SPARK_MONGODB_OUTPUT_URI_KEY, MONGODB_URI)
                 .getOrCreate();
         JavaSparkContext javaSparkContext = new JavaSparkContext(spark.sparkContext());
-
-        new PageRankingJob().run(javaSparkContext);
         new DocumentProcessingJob().run(javaSparkContext);
+        new PageRankingJob().run(javaSparkContext);
 
         javaSparkContext.close();
     }

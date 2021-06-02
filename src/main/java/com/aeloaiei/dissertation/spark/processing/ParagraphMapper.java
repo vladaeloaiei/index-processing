@@ -17,8 +17,6 @@ public class ParagraphMapper implements Serializable {
     public Iterator<WebParagraph> map(WebDocument webDocument) {
         return textUtils.getParagraphs(webDocument.getContent())
                 .stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
                 .map(p -> new WebParagraph(webDocument.getLocation(), p))
                 .iterator();
     }
