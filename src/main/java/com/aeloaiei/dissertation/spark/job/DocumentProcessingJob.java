@@ -60,7 +60,8 @@ public class DocumentProcessingJob implements SparkJob {
         webParagraphs.persist(MEMORY_AND_DISK());
         webParagraphs.count();
         webIntros = extractIntros(webDocuments);
-        webDocuments.unpersist();
+        webIntros.persist(MEMORY_AND_DISK());
+        webIntros.count();
 
         webDocumentSubjects = extractSubjects(webIntros);
         webWords = extractWords(webParagraphs);
@@ -83,7 +84,9 @@ public class DocumentProcessingJob implements SparkJob {
 
         LOGGER.info("Word indexing job finished");
 
+        webDocuments.unpersist();
         webParagraphs.unpersist();
+        webIntros.unpersist();
     }
 
     private JavaRDD<WebTitle> extractTitles(JavaRDD<WebDocument> webDocuments) {

@@ -35,6 +35,8 @@ public class TextUtils implements Serializable {
                 if (!paragraph.isEmpty()) {
                     return paragraph;
                 }
+
+                builder.setLength(0);
             } else {
                 builder.append(text.charAt(i));
             }
